@@ -1,3 +1,6 @@
 export default function Zoom() {
-  return <h1>Zoom</h1>;
-}
+  return (
+    <div id="wd-Zoom">
+      <h2>Zoom</h2>
+    </div>
+);}

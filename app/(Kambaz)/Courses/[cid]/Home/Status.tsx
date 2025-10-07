@@ -1,27 +1,51 @@
+import { MdAddToHomeScreen, MdDoNotDisturbAlt } from "react-icons/md";
+import { FaCheckCircle } from "react-icons/fa";
+import { BiImport } from "react-icons/bi";
+import { LiaFileImportSolid } from "react-icons/lia";
+import { Button } from "react-bootstrap";
+import { CiViewList } from "react-icons/ci";
+import { GrAnnounce } from "react-icons/gr";
+import { IoAnalyticsSharp } from "react-icons/io5";
+import { IoIosNotifications } from "react-icons/io";
+
 export default function CourseStatus() {
   return (
-    <div id="wd-course-status">
+    <div id="wd-course-status" style={{ width: "350px" }}>
       <h2>Course Status</h2>
-
-      {/* Publish / Unpublish */}
-      <button>Unpublish</button>
-      <button>Publish</button>
-      <br /><br />
-
-      {/* Additional options */}
-      <button>Import Existing Content</button>
+      <div className="d-flex">
+        <div className="w-50 pe-1">
+          <Button variant="secondary" size="lg" className="w-100 text-nowrap ">
+            <MdDoNotDisturbAlt className="me-2 fs-5" /> Unpublish
+          </Button>
+        </div>
+        <div className="w-50">
+          <Button variant="success" size="lg" className="w-100">
+            <FaCheckCircle className="me-2 fs-5" /> Publish
+          </Button>
+        </div>
+      </div>
       <br />
-      <button>Import from Commons</button>
-      <br />
-      <button>Choose Home Page</button>
-      <br />
-      <button>View Course Stream</button>
-      <br />
-      <button>New Announcement</button>
-      <br />
-      <button>New Analytics</button>
-      <br />
-      <button>View Course Notifications</button>
+      <Button variant="secondary" size="lg" className="w-100 mt-1 text-start">
+        <BiImport className="me-2 fs-5" /> Import Existing Content
+      </Button>
+      <Button variant="secondary" size="lg" className="w-100 mt-1 text-start">
+        <LiaFileImportSolid className="me-2 fs-5" /> Import from Commons
+      </Button>
+      <Button variant="secondary" size="lg" className="w-100 mt-1 text-start">
+        <MdAddToHomeScreen className="me-2 fs-5" /> Choose Home Page
+      </Button>
+      <Button variant="secondary" size="lg" className="w-100 mt-1 text-start">
+        <CiViewList className="me-2 fs-5" /> View Course Stream
+      </Button>
+      <Button variant="secondary" size="lg" className="w-100 mt-1 text-start">
+        <GrAnnounce className="me-2 fs-5" /> New Announcement
+      </Button>
+      <Button variant="secondary" size="lg" className="w-100 mt-1 text-start">
+        <IoAnalyticsSharp className="me-2 fs-5" /> New Analytics
+      </Button>
+      <Button variant="secondary" size="lg" className="w-100 mt-1 text-start">
+        <IoIosNotifications className="me-2 fs-5" /> View Course Notifications
+      </Button>
     </div>
   );
 }

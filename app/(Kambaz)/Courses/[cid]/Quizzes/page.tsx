@@ -1,3 +1,6 @@
 export default function Quizzes() {
-  return <h1>Quizzes</h1>;
-}
+  return (
+    <div id="wd-quizzes">
+      <h2>Quizzes</h2>
+    </div>
+);}
