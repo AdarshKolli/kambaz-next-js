@@ -1,3 +1,4 @@
+"use client"
 import { AiOutlineDashboard, AiTwotoneExperiment } from "react-icons/ai";
 import {
   FaBookOpenReader,
@@ -7,7 +8,19 @@ import {
 import Link from "next/link";
 import { ListGroup, ListGroupItem } from "react-bootstrap";
 import { FiInbox } from "react-icons/fi";
+import { usePathname } from "next/navigation";
+
 export default function KambazNavigation() {
+  const pathname = usePathname();
+  
+  const links = [
+    { label: "Dashboard", path: "/Dashboard", icon: AiOutlineDashboard },
+    { label: "Courses",   path: "/Dashboard", icon: FaBookOpenReader },
+    { label: "Calendar",  path: "/Calendar",  icon: FaCalendarCheck },
+    { label: "Inbox",     path: "/Inbox",     icon: FiInbox },
+    { label: "Labs",      path: "/Labs",      icon: AiTwotoneExperiment },
+  ];
+
   return (
     <div id="wd-kambaz-navigation">
       <ListGroup
@@ -28,48 +41,32 @@ export default function KambazNavigation() {
             alt="Northeastern University"
           />
         </ListGroupItem>
-        <ListGroupItem className="border-0 bg-black text-center">
-          <Link href="/Account" id="wd-account-link" className="text-white text-decoration-none">
-            <FaRegCircleUser className="fs-1 text-white" />
-            <br />
-            Account
-          </Link>
+        
+        <ListGroupItem 
+          as={Link} 
+          href="/Account"
+          id="wd-account-link"
+          className={`text-center border-0 text-decoration-none
+            ${pathname.includes("Account") ? "bg-white text-danger" : "bg-black text-white"}`}>
+          <FaRegCircleUser
+            className={`fs-1 ${pathname.includes("Account") ? "text-danger" : "text-white"}`} />
+          <br />
+          Account
         </ListGroupItem>
-        <ListGroupItem className="border-0 bg-white text-center">
-          <Link href="/Dashboard" id="wd-dashboard-link" className="text-black text-decoration-none">
-            <AiOutlineDashboard className="fs-1 text-danger" />
+
+        {links.map((link) => (
+          <ListGroupItem 
+            key={link.path + link.label} 
+            as={Link} 
+            href={link.path}
+            id={`wd-${link.label.toLowerCase()}-link`}
+            className={`text-center border-0 text-decoration-none
+              ${pathname.includes(link.label) ? "bg-white text-danger" : "bg-black text-white"}`}>
+            {link.icon({ className: "fs-1 text-danger"})}
             <br />
-            Dashboard
-          </Link>
-        </ListGroupItem>
-        <ListGroupItem className="border-0 bg-black text-center">
-          <Link href="/Dashboard" id="wd-course-link" className="text-white text-decoration-none">
-            <FaBookOpenReader className="fs-1 text-danger" />
-            <br />
-            Courses
-          </Link>
-        </ListGroupItem>
-        <ListGroupItem className="border-0 bg-black text-center">
-          <Link href="/Calendar" id="wd-calendar-link" className="text-white text-decoration-none">
-            <FaCalendarCheck className="fs-1 text-danger" />
-            <br />
-            Calendar
-          </Link>
-        </ListGroupItem>
-        <ListGroupItem className="border-0 bg-black text-center">
-          <Link href="/Inbox" id="wd-inbox-link" className="text-white text-decoration-none">
-            <FiInbox className="fs-1 text-danger" />
-            <br />
-            Inbox
-          </Link>
-        </ListGroupItem>
-        <ListGroupItem className="border-0 bg-black text-center">
-          <Link href="/Labs" id="wd-labs-link" className="text-white text-decoration-none">
-            <AiTwotoneExperiment className="fs-1 text-danger" />
-            <br />
-            Labs
-          </Link>
-        </ListGroupItem>
+            {link.label}
+          </ListGroupItem>
+        ))}
       </ListGroup>
     </div>
   );

@@ -1,13 +1,13 @@
 import Form from "react-bootstrap/Form";
 import { IoSearch } from "react-icons/io5";
-import "./style.css";
 import { FaPlus } from "react-icons/fa6";
 import { Button } from "react-bootstrap";
+import "./style.css";
 
 export default function ModulesControls() {
   return (
     <div className="modules-controls d-flex align-items-center justify-content-between">
-      <div className="search-container">
+      <div className="search-container d-flex align-items-center">
         <IoSearch className="search-icon" />
         <Form.Control
           type="text"
@@ -16,17 +16,26 @@ export default function ModulesControls() {
           className="search-input"
         />
       </div>
-      <div className="button-group">
-        <Button variant="black" size="lg" id="wd-add-module-btn" className="me-2">
-          <FaPlus className="position-relative me-2" style={{ bottom: "1px" }} />
-          Groups
+
+      <div className="button-group d-flex align-items-center">
+        <Button
+          variant="light"
+          size="lg"
+          className="group-btn me-2"
+        >
+          <FaPlus className="me-2 plus-icon" />
+          Group
         </Button>
-        <Button variant="danger" size="lg" id="wd-add-module-btn">
-          <FaPlus className="position-relative me-2" style={{ bottom: "1px" }} />
-          Assignments
+
+        <Button
+          variant="danger"
+          size="lg"
+          className="assignment-btn"
+        >
+          <FaPlus className="me-2 plus-icon" />
+          Assignment
         </Button>
       </div>
     </div>
   );
 }
-

@@ -1,0 +1,218 @@
+[
+  {
+    "_id": "A101",
+    "title": "A1 - ENV + HTML",
+    "course": "1234",
+    "description": "Create a basic HTML page",
+    "points": 100,
+    "dueDate": "2024-05-20",
+    "availableDate": "2024-05-06"
+  },
+  {
+    "_id": "A102",
+    "title": "A2 - CSS + Bootstrap",
+    "course": "1234",
+    "description": "Style your HTML page",
+    "points": 100,
+    "dueDate": "2024-05-27",
+    "availableDate": "2024-05-13"
+  },
+  {
+    "_id": "A103",
+    "title": "A3 - JavaScript",
+    "course": "1234",
+    "description": "Add interactivity with JavaScript",
+    "points": 100,
+    "dueDate": "2024-06-03",
+    "availableDate": "2024-05-20"
+  },
+  {
+    "_id": "A201",
+    "title": "A1 - Python Basics",
+    "course": "5010",
+    "description": "Introduction to Python programming",
+    "points": 100,
+    "dueDate": "2024-05-20",
+    "availableDate": "2024-05-06"
+  },
+  {
+    "_id": "A202",
+    "title": "A2 - Data Structures",
+    "course": "5010",
+    "description": "Implement Python data structures",
+    "points": 100,
+    "dueDate": "2024-05-27",
+    "availableDate": "2024-05-13"
+  },
+  {
+    "_id": "A203",
+    "title": "A3 - Object-Oriented Programming",
+    "course": "5010",
+    "description": "Build a Python OOP project",
+    "points": 100,
+    "dueDate": "2024-06-03",
+    "availableDate": "2024-05-20"
+  },
+  {
+    "_id": "A301",
+    "title": "A1 - ES6 Features",
+    "course": "5011",
+    "description": "Modern JavaScript syntax",
+    "points": 100,
+    "dueDate": "2024-05-20",
+    "availableDate": "2024-05-06"
+  },
+  {
+    "_id": "A302",
+    "title": "A2 - Async JavaScript",
+    "course": "5011",
+    "description": "Promises and async/await",
+    "points": 100,
+    "dueDate": "2024-05-27",
+    "availableDate": "2024-05-13"
+  },
+  {
+    "_id": "A303",
+    "title": "A3 - DOM Project",
+    "course": "5011",
+    "description": "Build an interactive web application",
+    "points": 100,
+    "dueDate": "2024-06-03",
+    "availableDate": "2024-05-20"
+  },
+  {
+    "_id": "A401",
+    "title": "A1 - Node.js Basics",
+    "course": "5012",
+    "description": "Introduction to Node.js and npm",
+    "points": 100,
+    "dueDate": "2024-05-20",
+    "availableDate": "2024-05-06"
+  },
+  {
+    "_id": "A402",
+    "title": "A2 - Express Server",
+    "course": "5012",
+    "description": "Build a REST API with Express",
+    "points": 100,
+    "dueDate": "2024-05-27",
+    "availableDate": "2024-05-13"
+  },
+  {
+    "_id": "A403",
+    "title": "A3 - Full Stack App",
+    "course": "5012",
+    "description": "Create a complete Node.js application",
+    "points": 100,
+    "dueDate": "2024-06-03",
+    "availableDate": "2024-05-20"
+  },
+  {
+    "_id": "A501",
+    "title": "A1 - Angular Setup",
+    "course": "5013",
+    "description": "Set up Angular development environment",
+    "points": 100,
+    "dueDate": "2024-05-20",
+    "availableDate": "2024-05-06"
+  },
+  {
+    "_id": "A502",
+    "title": "A2 - Components & Services",
+    "course": "5013",
+    "description": "Build Angular components and services",
+    "points": 100,
+    "dueDate": "2024-05-27",
+    "availableDate": "2024-05-13"
+  },
+  {
+    "_id": "A503",
+    "title": "A3 - Angular SPA",
+    "course": "5013",
+    "description": "Create a single page application",
+    "points": 100,
+    "dueDate": "2024-06-03",
+    "availableDate": "2024-05-20"
+  },
+  {
+    "_id": "A601",
+    "title": "A1 - Java Fundamentals",
+    "course": "5014",
+    "description": "Basic Java syntax and OOP",
+    "points": 100,
+    "dueDate": "2024-05-20",
+    "availableDate": "2024-05-06"
+  },
+  {
+    "_id": "A602",
+    "title": "A2 - Java Collections",
+    "course": "5014",
+    "description": "Work with Java data structures",
+    "points": 100,
+    "dueDate": "2024-05-27",
+    "availableDate": "2024-05-13"
+  },
+  {
+    "_id": "A603",
+    "title": "A3 - Java Application",
+    "course": "5014",
+    "description": "Build a complete Java application",
+    "points": 100,
+    "dueDate": "2024-06-03",
+    "availableDate": "2024-05-20"
+  },
+  {
+    "_id": "A701",
+    "title": "A1 - C++ Basics",
+    "course": "5015",
+    "description": "Introduction to C++ programming",
+    "points": 100,
+    "dueDate": "2024-05-20",
+    "availableDate": "2024-05-06"
+  },
+  {
+    "_id": "A702",
+    "title": "A2 - Pointers & Memory",
+    "course": "5015",
+    "description": "Understanding memory management in C++",
+    "points": 100,
+    "dueDate": "2024-05-27",
+    "availableDate": "2024-05-13"
+  },
+  {
+    "_id": "A703",
+    "title": "A3 - Advanced C++",
+    "course": "5015",
+    "description": "Templates and STL",
+    "points": 100,
+    "dueDate": "2024-06-03",
+    "availableDate": "2024-05-20"
+  },
+  {
+    "_id": "A801",
+    "title": "A1 - ML Fundamentals",
+    "course": "6010",
+    "description": "Introduction to Machine Learning concepts",
+    "points": 100,
+    "dueDate": "2024-05-20",
+    "availableDate": "2024-05-06"
+  },
+  {
+    "_id": "A802",
+    "title": "A2 - Supervised Learning",
+    "course": "6010",
+    "description": "Build classification and regression models",
+    "points": 100,
+    "dueDate": "2024-05-27",
+    "availableDate": "2024-05-13"
+  },
+  {
+    "_id": "A803",
+    "title": "A3 - Neural Networks",
+    "course": "6010",
+    "description": "Implement a deep learning model",
+    "points": 100,
+    "dueDate": "2024-06-03",
+    "availableDate": "2024-05-20"
+  }
+]

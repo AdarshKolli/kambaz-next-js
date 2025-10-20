@@ -1,0 +1,50 @@
+[
+  {
+    "_id": "1234",
+    "name": "CS1234 React JS",
+    "description": "Full Stack software developer",
+    "image": "/images/reactjs.jpeg"
+  },
+  {
+    "_id": "5010",
+    "name": "CS2345 Python",
+    "description": "Python Programming Essentials",
+    "image": "/images/python.png"
+  },
+  {
+    "_id": "5011",
+    "name": "CS3456 JavaScript",
+    "description": "Modern JavaScript Development",
+    "image": "/images/javascript.png"
+  },
+  {
+    "_id": "5012",
+    "name": "CS4567 Node JS",
+    "description": "Backend Development with Node JS",
+    "image": "/images/nodejs.jpg"
+  },
+  {
+    "_id": "5013",
+    "name": "CS5678 Angular JS",
+    "description": "Frontend Development with Angular JS",
+    "image": "/images/angularjs.jpeg"
+  },
+  {
+    "_id": "5014",
+    "name": "CS6789 Java",
+    "description": "Core Java Programming",
+    "image": "/images/java.png"
+  },
+  {
+    "_id": "5015",
+    "name": "CS7890 C++",
+    "description": "Advanced C++ Programming",
+    "image": "/images/cpp.jpg"
+  },
+  {
+    "_id": "6010",
+    "name": "CS6010 Machine Learning",
+    "description": "Data Science",
+    "image": "/images/machinelearning.jpg"
+  }
+]

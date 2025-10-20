@@ -1,0 +1,112 @@
+[
+  {
+    "_id": "123",
+    "firstName": "Tony",
+    "lastName": "Stark",
+    "username": "iron_man",
+    "loginId": "001234561S",
+    "section": "S101",
+    "role": "STUDENT",
+    "lastActivity": "2020-10-01",
+    "totalActivity": "10:21:32"
+  },
+  {
+    "_id": "234",
+    "firstName": "Bruce",
+    "lastName": "Wayne",
+    "username": "batman",
+    "loginId": "001234562S",
+    "section": "S101",
+    "role": "STUDENT",
+    "lastActivity": "2020-10-02",
+    "totalActivity": "11:30:00"
+  },
+  {
+    "_id": "345",
+    "firstName": "Steve",
+    "lastName": "Rogers",
+    "username": "captain_america",
+    "loginId": "001234563S",
+    "section": "S101",
+    "role": "STUDENT",
+    "lastActivity": "2020-10-03",
+    "totalActivity": "09:15:45"
+  },
+  {
+    "_id": "456",
+    "firstName": "Natasha",
+    "lastName": "Romanoff",
+    "username": "black_widow",
+    "loginId": "001234564S",
+    "section": "S101",
+    "role": "STUDENT",
+    "lastActivity": "2020-10-04",
+    "totalActivity": "12:45:20"
+  },
+  {
+    "_id": "567",
+    "firstName": "Peter",
+    "lastName": "Parker",
+    "username": "spider_man",
+    "loginId": "001234565S",
+    "section": "S101",
+    "role": "STUDENT",
+    "lastActivity": "2020-10-05",
+    "totalActivity": "08:50:10"
+  },
+  {
+    "_id": "678",
+    "firstName": "Clark",
+    "lastName": "Kent",
+    "username": "superman",
+    "loginId": "001234566S",
+    "section": "S102",
+    "role": "STUDENT",
+    "lastActivity": "2020-10-06",
+    "totalActivity": "13:20:35"
+  },
+  {
+    "_id": "789",
+    "firstName": "Diana",
+    "lastName": "Prince",
+    "username": "wonder_woman",
+    "loginId": "001234567S",
+    "section": "S102",
+    "role": "STUDENT",
+    "lastActivity": "2020-10-07",
+    "totalActivity": "14:10:25"
+  },
+  {
+    "_id": "890",
+    "firstName": "Barry",
+    "lastName": "Allen",
+    "username": "flash",
+    "loginId": "001234568S",
+    "section": "S102",
+    "role": "STUDENT",
+    "lastActivity": "2020-10-08",
+    "totalActivity": "07:35:15"
+  },
+  {
+    "_id": "901",
+    "firstName": "Wanda",
+    "lastName": "Maximoff",
+    "username": "scarlet_witch",
+    "loginId": "001234569S",
+    "section": "S103",
+    "role": "STUDENT",
+    "lastActivity": "2020-10-09",
+    "totalActivity": "15:05:40"
+  },
+  {
+    "_id": "012",
+    "firstName": "T'Challa",
+    "lastName": "Udaku",
+    "username": "black_panther",
+    "loginId": "001234570S",
+    "section": "S103",
+    "role": "TA",
+    "lastActivity": "2020-10-10",
+    "totalActivity": "16:25:50"
+  }
+]
