@@ -1,7 +1,5 @@
 "use client"
 
-import { useSelector } from "react-redux";
-import { ListGroup } from "react-bootstrap";
 import VariablesAndConstants from "./VariablesAndConstants";
 import VariableTypes from "./VariableTypes";
 import BooleanVariables from "./BooleanVariables";
@@ -37,26 +35,9 @@ import TodoItem from "./todos/TodoItem";
 import TodoList from "./todos/TodoList";
 
 export default function Lab3() {
-  const { todos } = useSelector((state: { 
-  todosReducer: { 
-    todos: { id: string; title: string }[]; 
-    todo: { id: string; title: string } 
-  } 
-}) => state.todosReducer);
-  
   return(
     <div id="wd-lab3">
       <h3>Lab 3</h3>
-      
-      <h4>Todos from Redux Store</h4>
-      <ListGroup className="mb-3">
-        {todos.map((todo) => (
-          <ListGroup.Item key={todo.id}>
-            {todo.title}
-          </ListGroup.Item>
-        ))}
-      </ListGroup>
-      <hr />
       
       <VariablesAndConstants/>
       <VariableTypes />
