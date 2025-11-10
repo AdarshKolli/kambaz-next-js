@@ -1,5 +1,6 @@
 "use client"
 
+import dynamic from 'next/dynamic';
 import ClickEvent from "./ClickEvent";
 import PassingDataOnEvent from "./PassingDataOnEvent";
 import PassingFunctions from "./PassingFunctions";
@@ -10,7 +11,12 @@ import DateStateVariable from "./DateStateVariable";
 import ObjectStateVariable from "./ObjectStateVariable";
 import ArrayStateVariable from "./ArrayStateElement";
 import ParentStateComponent from "./ParentStateComponent";
-import ReduxExamples from "./ReduxExamples";
+
+// Dynamically import Redux components with no SSR
+const ReduxExamples = dynamic(() => import('./ReduxExamples'), {
+  ssr: false,
+  loading: () => <p>Loading Redux Examples...</p>
+});
 
 export default function Lab4() {
   function sayHello() {
