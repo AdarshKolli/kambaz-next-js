@@ -8,17 +8,19 @@ interface AccountState {
   currentUser: any;
 }
 
-export default function AccountPage() {
+export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { currentUser } = useSelector((state: { accountReducer: AccountState }) => state.accountReducer);
   const router = useRouter();
 
   useEffect(() => {
-    if (currentUser) {
-      router.push("/Account/Profile");
-    } else {
+    if (!currentUser) {
       router.push("/Account/Signin");
     }
   }, [currentUser, router]);
 
-  return null;
+  if (!currentUser) {
+    return null; // or a loading spinner
+  }
+
+  return <>{children}</>;
 }

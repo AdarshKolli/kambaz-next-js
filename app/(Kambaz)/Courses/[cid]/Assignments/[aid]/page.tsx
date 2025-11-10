@@ -1,16 +1,35 @@
 "use client"
+
 import { Form, Button, Row, Col } from "react-bootstrap";
-import { useParams } from "next/navigation";
-import Link from "next/link";
-import * as db from "../../../../Database";
+import { useParams, useRouter } from "next/navigation";
+import { useSelector, useDispatch } from "react-redux";
+import { updateAssignment, addAssignment, setAssignment } from "../../../../../Labs/store/assignmentsReducer";
+
+interface AssignmentsState {
+  assignments: any[];
+  assignment: any;
+}
 
 export default function AssignmentEditor() {
   const { cid, aid } = useParams();
-  const assignment = db.assignments.find((a: any) => a._id === aid);
+  const router = useRouter();
+  const { assignment } = useSelector((state: { assignmentsReducer: AssignmentsState }) => state.assignmentsReducer);
+  const dispatch = useDispatch();
 
-  if (!assignment) {
-    return <div className="p-4">Assignment not found</div>;
-  }
+  const isNewAssignment = aid === "new";
+
+  const handleSave = () => {
+    if (isNewAssignment) {
+      dispatch(addAssignment({ ...assignment, course: cid }));
+    } else {
+      dispatch(updateAssignment(assignment));
+    }
+    router.push(`/Courses/${cid}/Assignments`);
+  };
+
+  const handleCancel = () => {
+    router.push(`/Courses/${cid}/Assignments`);
+  };
 
   return (
     <div id="wd-assignments-editor" className="container-fluid p-4">
@@ -21,7 +40,8 @@ export default function AssignmentEditor() {
           <Form.Control 
             type="text" 
             id="wd-name" 
-            defaultValue={assignment.title}
+            value={assignment?.title || ""}
+            onChange={(e) => dispatch(setAssignment({ ...assignment, title: e.target.value }))}
           />
         </Form.Group>
 
@@ -32,7 +52,8 @@ export default function AssignmentEditor() {
             as="textarea" 
             rows={5}
             id="wd-description"
-            defaultValue={assignment.description}
+            value={assignment?.description || ""}
+            onChange={(e) => dispatch(setAssignment({ ...assignment, description: e.target.value }))}
           />
         </Form.Group>
 
@@ -45,7 +66,8 @@ export default function AssignmentEditor() {
             <Form.Control 
               type="number" 
               id="wd-points" 
-              defaultValue={assignment.points}
+              value={assignment?.points || 100}
+              onChange={(e) => dispatch(setAssignment({ ...assignment, points: parseInt(e.target.value) }))}
             />
           </Col>
         </Row>
@@ -148,7 +170,8 @@ export default function AssignmentEditor() {
                 <Form.Control 
                   type="date"
                   id="wd-due-date"
-                  defaultValue={assignment.dueDate}
+                  value={assignment?.dueDate || ""}
+                  onChange={(e) => dispatch(setAssignment({ ...assignment, dueDate: e.target.value }))}
                 />
               </Form.Group>
 
@@ -160,7 +183,8 @@ export default function AssignmentEditor() {
                     <Form.Control 
                       type="date"
                       id="wd-available-from"
-                      defaultValue={assignment.availableDate}
+                      value={assignment?.availableDate || ""}
+                      onChange={(e) => dispatch(setAssignment({ ...assignment, availableDate: e.target.value }))}
                     />
                   </Form.Group>
                 </Col>
@@ -170,7 +194,8 @@ export default function AssignmentEditor() {
                     <Form.Control 
                       type="date"
                       id="wd-available-until"
-                      defaultValue={assignment.dueDate}
+                      value={assignment?.dueDate || ""}
+                      onChange={(e) => dispatch(setAssignment({ ...assignment, dueDate: e.target.value }))}
                     />
                   </Form.Group>
                 </Col>
@@ -182,22 +207,12 @@ export default function AssignmentEditor() {
         {/* Buttons */}
         <hr />
         <div className="d-flex justify-content-end gap-2">
-          <Link href={`/Courses/${cid}/Assignments`}>
-            <Button 
-              variant="secondary" 
-              id="wd-cancel-button"
-            >
-              Cancel
-            </Button>
-          </Link>
-          <Link href={`/Courses/${cid}/Assignments`}>
-            <Button 
-              variant="danger" 
-              id="wd-save-button"
-            >
-              Save
-            </Button>
-          </Link>
+          <Button variant="secondary" onClick={handleCancel}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={handleSave}>
+            Save
+          </Button>
         </div>
       </Form>
     </div>
