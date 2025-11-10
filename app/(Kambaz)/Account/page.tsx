@@ -1,24 +1,5 @@
-"use client"
-
-import { useSelector } from "react-redux";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-
-interface AccountState {
-  currentUser: any;
-}
+import { redirect } from "next/dist/client/components/navigation";
 
 export default function AccountPage() {
-  const { currentUser } = useSelector((state: { accountReducer: AccountState }) => state.accountReducer);
-  const router = useRouter();
-
-  useEffect(() => {
-    if (currentUser) {
-      router.push("/Account/Profile");
-    } else {
-      router.push("/Account/Signin");
-    }
-  }, [currentUser, router]);
-
-  return null;
+ redirect("/Account/Signin");
 }
