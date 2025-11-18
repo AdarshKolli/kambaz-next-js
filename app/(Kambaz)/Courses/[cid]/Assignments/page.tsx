@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { ListGroup, ListGroupItem, Button, Modal } from "react-bootstrap";
 import { BsGripVertical, BsThreeDotsVertical } from "react-icons/bs";
 import { FaCheckCircle, FaTrash, FaPlus } from "react-icons/fa";
 import { IoMdArrowDropdown } from "react-icons/io";
 import { useSelector, useDispatch } from "react-redux";
-import { deleteAssignment, setAssignment } from "../../../../Labs/store/assignmentsReducer";
-import { useState } from "react";
+import { setAssignments, setAssignment } from "../../../../Labs/store/assignmentsReducer";
+import * as coursesClient from "../../client";
 
 interface AssignmentsState {
   assignments: any[];
@@ -31,14 +32,24 @@ export default function Assignments() {
 
   const isFaculty = currentUser?.role === "FACULTY";
 
+  const fetchAssignments = async () => {
+    const assignments = await coursesClient.findAssignmentsForCourse(cid as string);
+    dispatch(setAssignments(assignments));
+  };
+
+  useEffect(() => {
+    fetchAssignments();
+  }, []);
+
   const handleDeleteClick = (assignmentId: string) => {
     setAssignmentToDelete(assignmentId);
     setShowDeleteDialog(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (assignmentToDelete) {
-      dispatch(deleteAssignment(assignmentToDelete));
+      await coursesClient.deleteAssignment(assignmentToDelete);
+      dispatch(setAssignments(assignments.filter((a: any) => a._id !== assignmentToDelete)));
       setShowDeleteDialog(false);
       setAssignmentToDelete(null);
     }
@@ -64,7 +75,6 @@ export default function Assignments() {
 
   return (
     <div id="wd-assignments">
-      {/* Top buttons - Only for FACULTY */}
       {isFaculty && (
         <div className="d-flex justify-content-end gap-2 mb-3">
           <Button variant="secondary">
@@ -89,58 +99,60 @@ export default function Assignments() {
             {isFaculty && (
               <div className="d-flex align-items-center">
                 <span className="border border-dark rounded-pill px-3 py-1 me-2">40% of total</span>
-                <button className="btn btn-sm">+</button>
+                <button 
+                  className="btn btn-sm"
+                  onClick={handleAddAssignment}
+                >
+                  +
+                </button>
                 <BsThreeDotsVertical className="ms-2" />
               </div>
             )}
           </div>
 
           <ListGroup className="rounded-0">
-            {assignments
-              .filter((assignment: any) => assignment.course === cid)
-              .map((assignment: any) => (
-                <ListGroupItem 
-                  key={assignment._id}
-                  className="p-3 d-flex align-items-start"
-                  style={{ borderLeft: "5px solid #28a745" }}
-                >
-                  <BsGripVertical className="me-3 fs-3 text-muted" />
-                  <div className="flex-grow-1">
-                    <Link
-                      href={`/Courses/${cid}/Assignments/${assignment._id}`}
-                      className="text-dark text-decoration-none fw-bold"
-                      onClick={() => dispatch(setAssignment(assignment))}
-                    >
-                      {assignment.title}
-                    </Link>
-                    <div className="text-muted small">
-                      <span className="text-danger">Multiple Modules</span>
-                      {" | "}
-                      <span className="fw-bold">Not available until</span> {assignment.availableDate}
-                      {" | "}
-                      <span className="fw-bold">Due</span> {assignment.dueDate}
-                      {" | "}
-                      {assignment.points} pts
-                    </div>
+            {assignments.map((assignment: any) => (
+              <ListGroupItem 
+                key={assignment._id}
+                className="p-3 d-flex align-items-start"
+                style={{ borderLeft: "5px solid #28a745" }}
+              >
+                <BsGripVertical className="me-3 fs-3 text-muted" />
+                <div className="flex-grow-1">
+                  <Link
+                    href={`/Courses/${cid}/Assignments/${assignment._id}`}
+                    className="text-dark text-decoration-none fw-bold"
+                    onClick={() => dispatch(setAssignment(assignment))}
+                  >
+                    {assignment.title}
+                  </Link>
+                  <div className="text-muted small">
+                    <span className="text-danger">Multiple Modules</span>
+                    {" | "}
+                    <span className="fw-bold">Not available until</span> {assignment.availableDate}
+                    {" | "}
+                    <span className="fw-bold">Due</span> {assignment.dueDate}
+                    {" | "}
+                    {assignment.points} pts
                   </div>
-                  <div className="d-flex align-items-center ms-3">
-                    {isFaculty && (
-                      <FaTrash
-                        className="text-danger fs-5 me-3"
-                        style={{ cursor: "pointer" }}
-                        onClick={() => handleDeleteClick(assignment._id)}
-                      />
-                    )}
-                    <FaCheckCircle className="text-success fs-5 me-3" />
-                    <BsThreeDotsVertical />
-                  </div>
-                </ListGroupItem>
-              ))}
+                </div>
+                <div className="d-flex align-items-center ms-3">
+                  {isFaculty && (
+                    <FaTrash
+                      className="text-danger fs-5 me-3"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => handleDeleteClick(assignment._id)}
+                    />
+                  )}
+                  <FaCheckCircle className="text-success fs-5 me-3" />
+                  <BsThreeDotsVertical />
+                </div>
+              </ListGroupItem>
+            ))}
           </ListGroup>
         </ListGroupItem>
       </ListGroup>
 
-      {/* Delete Confirmation Modal */}
       <Modal show={showDeleteDialog} onHide={cancelDelete}>
         <Modal.Header closeButton>
           <Modal.Title>Confirm Delete</Modal.Title>

@@ -1,14 +1,16 @@
 import { createSlice } from "@reduxjs/toolkit";
-import * as db from "../../(Kambaz)/Database";
 
 const initialState = {
-  enrollments: db.enrollments,
+  enrollments: [],
 };
 
 const enrollmentsSlice = createSlice({
   name: "enrollments",
   initialState,
   reducers: {
+    setEnrollments: (state, action) => {
+      state.enrollments = action.payload;
+    },
     enroll: (state, action) => {
       const { userId, courseId } = action.payload;
       const newEnrollment = {
@@ -27,5 +29,5 @@ const enrollmentsSlice = createSlice({
   },
 });
 
-export const { enroll, unenroll } = enrollmentsSlice.actions;
+export const { setEnrollments, enroll, unenroll } = enrollmentsSlice.actions;
 export default enrollmentsSlice.reducer;

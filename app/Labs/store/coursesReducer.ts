@@ -1,8 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
-import * as db from "../../(Kambaz)/Database";
 
 const initialState = {
-  courses: db.courses,
+  courses: [],  // Start with empty array - will be populated from server
   course: {
     _id: "0",
     name: "New Course",
@@ -18,6 +17,9 @@ const coursesSlice = createSlice({
   name: "courses",
   initialState,
   reducers: {
+    setCourses: (state, action) => {
+      state.courses = action.payload;
+    },
     addNewCourse: (state) => {
       const newCourse = {
         ...state.course,
@@ -26,10 +28,10 @@ const coursesSlice = createSlice({
       state.courses = [...state.courses, newCourse];
     },
     deleteCourse: (state, action) => {
-      state.courses = state.courses.filter((c) => c._id !== action.payload);
+      state.courses = state.courses.filter((c: any) => c._id !== action.payload);
     },
     updateCourse: (state) => {
-      state.courses = state.courses.map((c) => {
+      state.courses = state.courses.map((c: any) => {
         if (c._id === state.course._id) {
           return state.course;
         } else {
@@ -43,5 +45,5 @@ const coursesSlice = createSlice({
   }
 });
 
-export const { addNewCourse, deleteCourse, updateCourse, setCourse } = coursesSlice.actions;
+export const { setCourses, addNewCourse, deleteCourse, updateCourse, setCourse } = coursesSlice.actions;
 export default coursesSlice.reducer;

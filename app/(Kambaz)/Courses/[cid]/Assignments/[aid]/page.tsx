@@ -3,7 +3,8 @@
 import { Form, Button, Row, Col } from "react-bootstrap";
 import { useParams, useRouter } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
-import { updateAssignment, addAssignment, setAssignment } from "../../../../../Labs/store/assignmentsReducer";
+import { setAssignment } from "../../../../../Labs/store/assignmentsReducer";
+import * as coursesClient from "../../../client";
 
 interface AssignmentsState {
   assignments: any[];
@@ -18,11 +19,11 @@ export default function AssignmentEditor() {
 
   const isNewAssignment = aid === "new";
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (isNewAssignment) {
-      dispatch(addAssignment({ ...assignment, course: cid }));
+      await coursesClient.createAssignmentForCourse(cid as string, assignment);
     } else {
-      dispatch(updateAssignment(assignment));
+      await coursesClient.updateAssignment(assignment);
     }
     router.push(`/Courses/${cid}/Assignments`);
   };
@@ -34,7 +35,6 @@ export default function AssignmentEditor() {
   return (
     <div id="wd-assignments-editor" className="container-fluid p-4">
       <Form>
-        {/* Assignment Name */}
         <Form.Group className="mb-3">
           <Form.Label htmlFor="wd-name">Assignment Name</Form.Label>
           <Form.Control 
@@ -45,7 +45,6 @@ export default function AssignmentEditor() {
           />
         </Form.Group>
 
-        {/* Description */}
         <Form.Group className="mb-3">
           <Form.Label htmlFor="wd-description">Description</Form.Label>
           <Form.Control 
@@ -57,7 +56,6 @@ export default function AssignmentEditor() {
           />
         </Form.Group>
 
-        {/* Points */}
         <Row className="mb-3">
           <Col md={3}>
             <Form.Label htmlFor="wd-points" className="text-end d-block">Points</Form.Label>
@@ -72,7 +70,6 @@ export default function AssignmentEditor() {
           </Col>
         </Row>
 
-        {/* Assignment Group */}
         <Row className="mb-3">
           <Col md={3}>
             <Form.Label htmlFor="wd-group" className="text-end d-block">Assignment Group</Form.Label>
@@ -87,7 +84,6 @@ export default function AssignmentEditor() {
           </Col>
         </Row>
 
-        {/* Display Grade As */}
         <Row className="mb-3">
           <Col md={3}>
             <Form.Label htmlFor="wd-display-grade-as" className="text-end d-block">Display Grade as</Form.Label>
@@ -101,7 +97,6 @@ export default function AssignmentEditor() {
           </Col>
         </Row>
 
-        {/* Submission Type */}
         <Row className="mb-3">
           <Col md={3}>
             <Form.Label htmlFor="wd-submission-type" className="text-end d-block">Submission Type</Form.Label>
@@ -147,14 +142,12 @@ export default function AssignmentEditor() {
           </Col>
         </Row>
 
-        {/* Assign Section */}
         <Row className="mb-3">
           <Col md={3}>
             <Form.Label className="text-end d-block">Assign</Form.Label>
           </Col>
           <Col md={9}>
             <div className="border rounded p-3">
-              {/* Assign To */}
               <Form.Group className="mb-3">
                 <Form.Label htmlFor="wd-assign-to" className="fw-bold">Assign to</Form.Label>
                 <Form.Control 
@@ -164,7 +157,6 @@ export default function AssignmentEditor() {
                 />
               </Form.Group>
 
-              {/* Due Date */}
               <Form.Group className="mb-3">
                 <Form.Label htmlFor="wd-due-date" className="fw-bold">Due</Form.Label>
                 <Form.Control 
@@ -175,7 +167,6 @@ export default function AssignmentEditor() {
                 />
               </Form.Group>
 
-              {/* Available From and Until */}
               <Row>
                 <Col md={6}>
                   <Form.Group className="mb-3">
@@ -204,7 +195,6 @@ export default function AssignmentEditor() {
           </Col>
         </Row>
 
-        {/* Buttons */}
         <hr />
         <div className="d-flex justify-content-end gap-2">
           <Button variant="secondary" onClick={handleCancel}>

@@ -6,15 +6,15 @@ export default function LabsLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <table>
-      <tbody>
-        <tr>
-          <td valign="top" width="100px">
-            <TOC />
-          </td>
-          <td valign="top">{children}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div className="container-fluid">
+      <div className="row">
+        <div className="col-2">
+          <TOC />
+        </div>
+        <div className="col-10">
+          {children}
+        </div>
+      </div>
+    </div>
   );
 }

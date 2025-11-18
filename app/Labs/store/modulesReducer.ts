@@ -1,14 +1,16 @@
 import { createSlice } from "@reduxjs/toolkit";
-import * as db from "../../(Kambaz)/Database";
 
 const initialState = {
-  modules: db.modules,
+  modules: [],
 };
 
 const modulesSlice = createSlice({
   name: "modules",
   initialState,
   reducers: {
+    setModules: (state, action) => {
+      state.modules = action.payload;
+    },
     addModule: (state, action) => {
       const newModule = {
         _id: new Date().getTime().toString(),
@@ -35,5 +37,5 @@ const modulesSlice = createSlice({
   },
 });
 
-export const { addModule, deleteModule, updateModule, editModule } = modulesSlice.actions;
+export const { setModules, addModule, deleteModule, updateModule, editModule } = modulesSlice.actions;
 export default modulesSlice.reducer;

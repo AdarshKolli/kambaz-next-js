@@ -1,8 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
-import * as db from "../../(Kambaz)/Database";
 
 const initialState = {
-  assignments: db.assignments,
+  assignments: [],
   assignment: {
     _id: "0",
     title: "New Assignment",
@@ -18,6 +17,9 @@ const assignmentsSlice = createSlice({
   name: "assignments",
   initialState,
   reducers: {
+    setAssignments: (state, action) => {
+      state.assignments = action.payload;
+    },
     addAssignment: (state, action) => {
       const newAssignment = {
         ...state.assignment,
@@ -40,5 +42,5 @@ const assignmentsSlice = createSlice({
   }
 });
 
-export const { addAssignment, deleteAssignment, updateAssignment, setAssignment } = assignmentsSlice.actions;
+export const { setAssignments, addAssignment, deleteAssignment, updateAssignment, setAssignment } = assignmentsSlice.actions;
 export default assignmentsSlice.reducer;
