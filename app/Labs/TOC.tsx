@@ -48,7 +48,7 @@ export default function TOC() {
         </NavLink>
       </NavItem>
       <NavItem className="mb-2">
-        <NavLink href="https://github.com/AdarshKolli/kambaz-node-server-app/tree/a5" target="_blank" className="nav-link py-1 px-2">
+        <NavLink href="https://github.com/AdarshKolli/kambaz-next-js/tree/a5" target="_blank" className="nav-link py-1 px-2">
           A5 Node
         </NavLink>
       </NavItem>
