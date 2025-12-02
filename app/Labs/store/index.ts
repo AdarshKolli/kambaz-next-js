@@ -8,6 +8,7 @@ import modulesReducer from "./modulesReducer";
 import accountReducer from "../../(Kambaz)/Account/reducer";
 import assignmentsReducer from "./assignmentsReducer";
 import enrollmentsReducer from "./enrollmentsReducer";
+import quizzesReducer from "./quizzesReducer";
 
 const store = configureStore({
   reducer: {
@@ -20,6 +21,7 @@ const store = configureStore({
     accountReducer,
     assignmentsReducer,
     enrollmentsReducer,
+    quizzesReducer,
   },
 });
 

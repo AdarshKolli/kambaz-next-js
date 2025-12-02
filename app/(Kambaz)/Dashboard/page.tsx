@@ -15,7 +15,6 @@ import {
 } from "react-bootstrap";
 import { useSelector, useDispatch } from "react-redux";
 import { setCourses, setCourse } from "../../Labs/store/coursesReducer";
-import { setEnrollments, enroll as enrollAction, unenroll as unenrollAction } from "../../Labs/store/enrollmentsReducer";
 import * as coursesClient from "../Courses/client";
 
 interface CoursesState {
@@ -27,24 +26,22 @@ interface AccountState {
   currentUser: any;
 }
 
-interface EnrollmentsState {
-  enrollments: any[];
-}
-
 export default function Dashboard() {
   const { courses, course } = useSelector((state: { coursesReducer: CoursesState }) => state.coursesReducer);
-  const { currentUser } = useSelector((state: { accountReducer: AccountState }) => state.accountReducer);
-  const { enrollments } = useSelector((state: { enrollmentsReducer: EnrollmentsState }) => state.enrollmentsReducer);
+  const { currentUser } = useSelector((state: { accountState: AccountState }) => state.accountReducer);
   const dispatch = useDispatch();
 
   const [showAllCourses, setShowAllCourses] = useState(false);
   const [allCourses, setAllCourses] = useState<any[]>([]);
+  const [enrolledCourseIds, setEnrolledCourseIds] = useState<string[]>([]);
   const isFaculty = currentUser?.role === "FACULTY";
 
   const fetchCourses = async () => {
     try {
       const courses = await coursesClient.findMyCourses();
       dispatch(setCourses(courses));
+      // Extract enrolled course IDs from the courses returned
+      setEnrolledCourseIds(courses.map((c: any) => c._id));
     } catch (error) {
       console.error(error);
     }
@@ -59,27 +56,13 @@ export default function Dashboard() {
     }
   };
 
-  const fetchEnrollments = async () => {
-    if (currentUser) {
-      try {
-        const userEnrollments = await coursesClient.findEnrollmentsForUser("current");
-        dispatch(setEnrollments(userEnrollments));
-      } catch (error) {
-        console.error("Error fetching enrollments:", error);
-      }
-    }
-  };
-
   useEffect(() => {
     fetchCourses();
     fetchAllCourses();
-    fetchEnrollments();
   }, [currentUser]);
 
   const isEnrolled = (courseId: string) => {
-    return enrollments.some(
-      (e: any) => e.user === currentUser?._id && e.course === courseId
-    );
+    return enrolledCourseIds.includes(courseId);
   };
 
   const displayedCourses = showAllCourses ? allCourses : courses;
@@ -88,7 +71,9 @@ export default function Dashboard() {
     if (currentUser) {
       try {
         await coursesClient.enrollInCourse("current", courseId);
-        dispatch(enrollAction({ userId: currentUser._id, courseId }));
+        setEnrolledCourseIds([...enrolledCourseIds, courseId]);
+        // Refresh enrolled courses
+        fetchCourses();
       } catch (error) {
         console.error("Error enrolling:", error);
       }
@@ -99,7 +84,9 @@ export default function Dashboard() {
     if (currentUser) {
       try {
         await coursesClient.unenrollFromCourse("current", courseId);
-        dispatch(unenrollAction({ userId: currentUser._id, courseId }));
+        setEnrolledCourseIds(enrolledCourseIds.filter(id => id !== courseId));
+        // Refresh enrolled courses
+        fetchCourses();
       } catch (error) {
         console.error("Error unenrolling:", error);
       }
