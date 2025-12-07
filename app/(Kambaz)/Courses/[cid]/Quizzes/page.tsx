@@ -54,11 +54,11 @@ export default function Quizzes() {
       ? quizzesWithQuestions 
       : quizzesWithQuestions.filter((q: any) => q.published);
 
-    // Sort by available date in ascending order
+    // Sort by due date in ascending order
     const sortedQuizzes = filteredQuizzes.sort((a: any, b: any) => {
-      const dateA = new Date(a.availableDate).getTime();
-      const dateB = new Date(b.availableDate).getTime();
-      return dateA - dateB;
+      const dueDateA = new Date(a.dueDate).getTime();
+      const dueDateB = new Date(b.dueDate).getTime();
+      return dueDateA - dueDateB;
     });
 
     setQuizzes(sortedQuizzes);

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Button, Form, Card, Alert } from "react-bootstrap";
+import { Button, Form, Card, Alert, ButtonGroup } from "react-bootstrap";
 import { useSelector } from "react-redux";
 import * as quizzesClient from "../../client";
 
@@ -19,6 +19,7 @@ export default function TakeQuiz() {
   const [answers, setAnswers] = useState<any>({});
   const [attempts, setAttempts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
   useEffect(() => {
     loadData();
@@ -104,11 +105,50 @@ export default function TakeQuiz() {
     return [...array].sort(() => Math.random() - 0.5);
   };
 
-  const handleAnswerChange = (questionId: string, answer: string) => {
-    setAnswers((prev: any) => ({
-      ...prev,
-      [questionId]: answer
-    }));
+  const handleMultipleChoiceChange = (questionId: string, choiceText: string, hasMultipleCorrect: boolean) => {
+    if (hasMultipleCorrect) {
+      // Checkbox behavior - toggle selection
+      setAnswers((prev: any) => {
+        const currentAnswers = prev[questionId] || [];
+        const isSelected = currentAnswers.includes(choiceText);
+        
+        if (isSelected) {
+          return {
+            ...prev,
+            [questionId]: currentAnswers.filter((ans: string) => ans !== choiceText)
+          };
+        } else {
+          return {
+            ...prev,
+            [questionId]: [...currentAnswers, choiceText]
+          };
+        }
+      });
+    } else {
+      // Radio behavior - single selection
+      setAnswers((prev: any) => ({
+        ...prev,
+        [questionId]: choiceText
+      }));
+    }
+  };
+
+  const handleAnswerChange = (questionId: string, answer: string, blankNumber?: number) => {
+    if (blankNumber !== undefined) {
+      // For fill-in-blank with multiple blanks
+      setAnswers((prev: any) => ({
+        ...prev,
+        [questionId]: {
+          ...(prev[questionId] || {}),
+          [blankNumber]: answer
+        }
+      }));
+    } else {
+      setAnswers((prev: any) => ({
+        ...prev,
+        [questionId]: answer
+      }));
+    }
   };
 
   const handleSubmit = async () => {
@@ -134,37 +174,82 @@ export default function TakeQuiz() {
     const answersArray = questions.map((question) => {
       const userAnswer = answers[question._id];
       let isCorrect = false;
+      let earnedPoints = 0;
 
       if (question.type === "multiple-choice") {
-        const correctChoice = question.choices.find((c: any) => c.isCorrect);
-        isCorrect = userAnswer === correctChoice?.text;
+        const correctChoices = question.choices.filter((c: any) => c.isCorrect);
+        
+        if (correctChoices.length === 1) {
+          // Single correct answer
+          isCorrect = userAnswer === correctChoices[0]?.text;
+          earnedPoints = isCorrect ? question.points : 0;
+        } else {
+          // Multiple correct answers - partial credit
+          const userAnswers = Array.isArray(userAnswer) ? userAnswer : (userAnswer ? [userAnswer] : []);
+          const correctTexts = correctChoices.map((c: any) => c.text);
+          
+          const correctSelected = userAnswers.filter((ans: string) => correctTexts.includes(ans)).length;
+          const incorrectSelected = userAnswers.filter((ans: string) => !correctTexts.includes(ans)).length;
+          
+          if (correctSelected > 0 && incorrectSelected === 0) {
+            earnedPoints = (correctSelected / correctChoices.length) * question.points;
+            isCorrect = correctSelected === correctChoices.length;
+          }
+        }
       } else if (question.type === "true-false") {
         isCorrect = userAnswer === question.correctAnswer;
+        earnedPoints = isCorrect ? question.points : 0;
       } else if (question.type === "fill-in-blank") {
-  const correctAnswers = question.correctAnswers || 
-    (question.correctAnswer ? question.correctAnswer.split(",").map((a: string) => a.trim()) : []);
-  
-  const isCaseSensitive = question.caseSensitive || false;
-  
-  if (isCaseSensitive) {
-    isCorrect = correctAnswers.includes(userAnswer);
-  } else {
-    isCorrect = correctAnswers.some((ans: string) => 
-      ans.toLowerCase() === userAnswer?.toLowerCase()
-    );
-  }
-  
-  earnedPoints = isCorrect ? question.points : 0;
-}
-
-      if (isCorrect) {
-        calculatedScore += question.points;
+        // Handle new multi-blank format
+        if (question.blanks && question.blanks.length > 0) {
+          const pointsPerBlank = question.points / question.blanks.length;
+          
+          question.blanks.forEach((blank: any) => {
+            const userBlankAnswer = userAnswer?.[blank.blankNumber];
+            if (userBlankAnswer) {
+              const correctAnswers = blank.correctAnswers;
+              const isCaseSensitive = question.caseSensitive || false;
+              
+              const blankIsCorrect = isCaseSensitive
+                ? correctAnswers.includes(userBlankAnswer)
+                : correctAnswers.some((ans: string) => ans.toLowerCase() === userBlankAnswer.toLowerCase());
+              
+              if (blankIsCorrect) {
+                earnedPoints += pointsPerBlank;
+              }
+            }
+          });
+          
+          // Check if all blanks are correct
+          isCorrect = question.blanks.every((blank: any) => {
+            const userBlankAnswer = userAnswer?.[blank.blankNumber];
+            if (!userBlankAnswer) return false;
+            const isCaseSensitive = question.caseSensitive || false;
+            return isCaseSensitive
+              ? blank.correctAnswers.includes(userBlankAnswer)
+              : blank.correctAnswers.some((ans: string) => ans.toLowerCase() === userBlankAnswer.toLowerCase());
+          });
+        } else {
+          // Backward compatibility with old format
+          const correctAnswers = question.correctAnswers || 
+            (question.correctAnswer ? question.correctAnswer.split(",").map((a: string) => a.trim()) : []);
+          const isCaseSensitive = question.caseSensitive || false;
+          
+          isCorrect = isCaseSensitive
+            ? correctAnswers.includes(userAnswer)
+            : correctAnswers.some((ans: string) => ans.toLowerCase() === userAnswer?.toLowerCase());
+          
+          earnedPoints = isCorrect ? question.points : 0;
+        }
       }
+
+      calculatedScore += earnedPoints;
 
       return {
         questionId: question._id,
         answer: userAnswer,
         isCorrect,
+        earnedPoints,
       };
     });
 
@@ -179,7 +264,15 @@ export default function TakeQuiz() {
     router.push(`/Courses/${cid}/Quizzes/${qid}/results`);
   };
 
-  if (loading || !quiz) return <div>Loading...</div>;
+  const renderQuestionText = (questionText: string) => {
+    return questionText.replace(/\[blank(\d+)\]/gi, (match, number) => `<strong>[Blank ${number}]</strong>`);
+  };
+
+  if (loading || !quiz) return <div className="p-3">Loading...</div>;
+
+  const currentQuestion = questions[currentQuestionIndex];
+  const hasMultipleCorrect = currentQuestion?.type === "multiple-choice" && 
+    currentQuestion.choices.filter((c: any) => c.isCorrect).length > 1;
 
   return (
     <div id="wd-take-quiz" className="p-3">
@@ -197,76 +290,129 @@ export default function TakeQuiz() {
         </Alert>
       )}
 
-      {questions.map((question, index) => (
-        <Card key={question._id} className="mb-3">
+      {/* Question Navigation */}
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h5>Question {currentQuestionIndex + 1} of {questions.length}</h5>
+        <ButtonGroup>
+          <Button 
+            variant="outline-secondary" 
+            disabled={currentQuestionIndex === 0}
+            onClick={() => setCurrentQuestionIndex(currentQuestionIndex - 1)}
+          >
+            Previous
+          </Button>
+          <Button 
+            variant="outline-secondary" 
+            disabled={currentQuestionIndex === questions.length - 1}
+            onClick={() => setCurrentQuestionIndex(currentQuestionIndex + 1)}
+          >
+            Next
+          </Button>
+        </ButtonGroup>
+      </div>
+
+      {/* Current Question */}
+      {currentQuestion && (
+        <Card className="mb-3">
           <Card.Body>
-            <div className="d-flex justify-content-between">
-              <h5>Question {index + 1}</h5>
-              <span>{question.points} pts</span>
+            <div className="d-flex justify-content-between mb-3">
+              <h5>Question {currentQuestionIndex + 1}</h5>
+              <span>{currentQuestion.points} pts</span>
             </div>
-            <p>{question.question}</p>
+            <div dangerouslySetInnerHTML={{ __html: renderQuestionText(currentQuestion.question) }} />
 
-            {question.type === "multiple-choice" && (
-              <Form>
-                {question.choices.map((choice: any, idx: number) => (
-                  <div key={`${question._id}-${idx}`} className="mb-2">
-                    <Form.Check
-                      type="radio"
-                      id={`q-${question._id}-c-${idx}`}
-                      label={choice.text}
-                      name={`question-${question._id}`}
-                      checked={answers[question._id] === choice.text}
-                      onChange={() => handleAnswerChange(question._id, choice.text)}
-                    />
+            {currentQuestion.type === "multiple-choice" && (
+              <>
+                {hasMultipleCorrect && (
+                  <div className="alert alert-info mb-3 mt-3">
+                    <small>Select all that apply</small>
                   </div>
-                ))}
-              </Form>
+                )}
+                <Form className="mt-3">
+                  {currentQuestion.choices.map((choice: any, idx: number) => (
+                    <div key={`${currentQuestion._id}-${idx}`} className="mb-2">
+                      <Form.Check
+                        type={hasMultipleCorrect ? "checkbox" : "radio"}
+                        id={`q-${currentQuestion._id}-c-${idx}`}
+                        label={choice.text}
+                        name={hasMultipleCorrect ? undefined : `question-${currentQuestion._id}`}
+                        checked={
+                          hasMultipleCorrect
+                            ? (answers[currentQuestion._id] || []).includes(choice.text)
+                            : answers[currentQuestion._id] === choice.text
+                        }
+                        onChange={() => handleMultipleChoiceChange(currentQuestion._id, choice.text, hasMultipleCorrect)}
+                      />
+                    </div>
+                  ))}
+                </Form>
+              </>
             )}
 
-            {question.type === "true-false" && (
-              <Form>
+            {currentQuestion.type === "true-false" && (
+              <Form className="mt-3">
                 <div className="mb-2">
                   <Form.Check
                     type="radio"
-                    id={`q-${question._id}-true`}
+                    id={`q-${currentQuestion._id}-true`}
                     label="True"
-                    name={`question-${question._id}`}
-                    checked={answers[question._id] === "True"}
-                    onChange={() => handleAnswerChange(question._id, "True")}
+                    name={`question-${currentQuestion._id}`}
+                    checked={answers[currentQuestion._id] === "True"}
+                    onChange={() => handleAnswerChange(currentQuestion._id, "True")}
                   />
                 </div>
                 <div className="mb-2">
                   <Form.Check
                     type="radio"
-                    id={`q-${question._id}-false`}
+                    id={`q-${currentQuestion._id}-false`}
                     label="False"
-                    name={`question-${question._id}`}
-                    checked={answers[question._id] === "False"}
-                    onChange={() => handleAnswerChange(question._id, "False")}
+                    name={`question-${currentQuestion._id}`}
+                    checked={answers[currentQuestion._id] === "False"}
+                    onChange={() => handleAnswerChange(currentQuestion._id, "False")}
                   />
                 </div>
               </Form>
             )}
 
-            {question.type === "fill-in-blank" && (
-              <Form.Control
-                type="text"
-                value={answers[question._id] || ""}
-                onChange={(e) => handleAnswerChange(question._id, e.target.value)}
-                placeholder="Enter your answer"
-              />
+            {currentQuestion.type === "fill-in-blank" && (
+              <div className="mt-3">
+                {currentQuestion.blanks && currentQuestion.blanks.length > 0 ? (
+                  // New multi-blank format
+                  currentQuestion.blanks.map((blank: any, blankIdx: number) => (
+                    <Form.Group key={blankIdx} className="mb-3">
+                      <Form.Label>Blank {blank.blankNumber}</Form.Label>
+                      <Form.Control
+                        type="text"
+                        value={answers[currentQuestion._id]?.[blank.blankNumber] || ""}
+                        onChange={(e) => handleAnswerChange(currentQuestion._id, e.target.value, blank.blankNumber)}
+                        placeholder={`Enter answer for blank ${blank.blankNumber}`}
+                      />
+                    </Form.Group>
+                  ))
+                ) : (
+                  // Old single-blank format
+                  <Form.Control
+                    type="text"
+                    value={answers[currentQuestion._id] || ""}
+                    onChange={(e) => handleAnswerChange(currentQuestion._id, e.target.value)}
+                    placeholder="Enter your answer"
+                  />
+                )}
+              </div>
             )}
           </Card.Body>
         </Card>
-      ))}
+      )}
 
       <div className="d-flex gap-2">
         <Button variant="secondary" onClick={() => router.push(`/Courses/${cid}/Quizzes`)}>
           Cancel
         </Button>
-        <Button variant="primary" onClick={handleSubmit}>
-          Submit Quiz
-        </Button>
+        {currentQuestionIndex === questions.length - 1 && (
+          <Button variant="primary" onClick={handleSubmit}>
+            Submit Quiz
+          </Button>
+        )}
       </div>
     </div>
   );

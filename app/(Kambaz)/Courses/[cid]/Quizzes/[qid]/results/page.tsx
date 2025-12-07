@@ -11,6 +11,7 @@ export default function QuizResults() {
   const [quiz, setQuiz] = useState<any>(null);
   const [questions, setQuestions] = useState<any[]>([]);
   const [latestAttempt, setLatestAttempt] = useState<any>(null);
+  const [allAttempts, setAllAttempts] = useState<any[]>([]);
   const [noAttempt, setNoAttempt] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -28,7 +29,9 @@ export default function QuizResults() {
       
       try {
         const attemptData = await quizzesClient.findLatestAttempt(qid as string);
+        const allAttemptsData = await quizzesClient.findAttemptsForQuiz(qid as string);
         setLatestAttempt(attemptData);
+        setAllAttempts(allAttemptsData);
         setNoAttempt(false);
       } catch (error) {
         // No attempt - student never took the quiz
@@ -42,10 +45,17 @@ export default function QuizResults() {
     }
   };
 
+  const renderQuestionText = (questionText: string) => {
+    return questionText.replace(/\[blank(\d+)\]/gi, (match, number) => `<strong>[Blank ${number}]</strong>`);
+  };
+
   if (loading) return <div className="p-3">Loading...</div>;
   if (!quiz) return <div className="p-3">Quiz not found</div>;
 
   const totalPoints = questions.reduce((sum, q) => sum + q.points, 0);
+  const highestScore = allAttempts.length > 0 
+    ? Math.max(...allAttempts.map((a: any) => a.score))
+    : 0;
 
   // Handle case where student never attempted the quiz
   if (noAttempt) {
@@ -73,13 +83,13 @@ export default function QuizResults() {
                 <h5>Question {index + 1}</h5>
                 <span>{question.points} pts</span>
               </div>
-              <p>{question.question}</p>
+              <div dangerouslySetInnerHTML={{ __html: renderQuestionText(question.question) }} />
 
-              <p><strong>Your Answer:</strong> <span className="text-muted">Not Answered</span></p>
+              <p className="mt-3"><strong>Your Answer:</strong> <span className="text-muted">Not Answered</span></p>
 
               {question.type === "multiple-choice" && (
                 <p className="text-success">
-                  <strong>Correct Answer:</strong> {question.choices.find((c: any) => c.isCorrect)?.text}
+                  <strong>Correct Answer(s):</strong> {question.choices.filter((c: any) => c.isCorrect).map((c: any) => c.text).join(", ")}
                 </p>
               )}
 
@@ -90,9 +100,19 @@ export default function QuizResults() {
               )}
 
               {question.type === "fill-in-blank" && (
-                <p className="text-success">
-                  <strong>Possible Correct Answers:</strong> {question.correctAnswer}
-                </p>
+                <>
+                  {question.blanks && question.blanks.length > 0 ? (
+                    question.blanks.map((blank: any) => (
+                      <p key={blank.blankNumber} className="text-success">
+                        <strong>Blank {blank.blankNumber} - Possible Correct Answers:</strong> {blank.correctAnswers.join(", ")}
+                      </p>
+                    ))
+                  ) : (
+                    <p className="text-success">
+                      <strong>Possible Correct Answers:</strong> {question.correctAnswers?.join(", ") || question.correctAnswer}
+                    </p>
+                  )}
+                </>
               )}
 
               <div className="mt-2 fw-bold text-danger">
@@ -133,9 +153,12 @@ export default function QuizResults() {
       </div>
 
       <Alert variant="info">
-        <h4>Your Score: {latestAttempt.score} / {totalPoints}</h4>
+        <h4>Latest Attempt Score: {latestAttempt.score.toFixed(2)} / {totalPoints}</h4>
         <p>Percentage: {percentage}%</p>
-        <p>Attempt: {latestAttempt.attempt}</p>
+        <p>Attempt: {latestAttempt.attempt} of {quiz.howManyAttempts}</p>
+        {allAttempts.length > 1 && (
+          <p><strong>Highest Score:</strong> {highestScore.toFixed(2)} / {totalPoints}</p>
+        )}
         <p>Submitted: {new Date(latestAttempt.submittedAt).toLocaleString()}</p>
       </Alert>
 
@@ -146,6 +169,9 @@ export default function QuizResults() {
             const question = getQuestionById(answer.questionId);
             if (!question) return null;
 
+            const questionHasMultipleCorrect = question.type === "multiple-choice" && 
+              question.choices.filter((c: any) => c.isCorrect).length > 1;
+
             return (
               <Card key={answer.questionId} className={`mb-3 ${answer.isCorrect ? 'border-success' : 'border-danger'}`}>
                 <Card.Body>
@@ -153,14 +179,23 @@ export default function QuizResults() {
                     <h5>Question {index + 1}</h5>
                     <span>{question.points} pts</span>
                   </div>
-                  <p>{question.question}</p>
+                  <div dangerouslySetInnerHTML={{ __html: renderQuestionText(question.question) }} />
 
                   {question.type === "multiple-choice" && (
                     <>
-                      <p><strong>Your Answer:</strong> {answer.answer || <span className="text-muted">Not Answered</span>}</p>
+                      <p className="mt-3">
+                        <strong>Your Answer:</strong>{" "}
+                        {questionHasMultipleCorrect ? (
+                          Array.isArray(answer.answer) && answer.answer.length > 0 
+                            ? answer.answer.join(", ")
+                            : <span className="text-muted">Not Answered</span>
+                        ) : (
+                          answer.answer || <span className="text-muted">Not Answered</span>
+                        )}
+                      </p>
                       {!answer.isCorrect && (
                         <p className="text-success">
-                          <strong>Correct Answer:</strong> {question.choices.find((c: any) => c.isCorrect)?.text}
+                          <strong>Correct Answer(s):</strong> {question.choices.filter((c: any) => c.isCorrect).map((c: any) => c.text).join(", ")}
                         </p>
                       )}
                     </>
@@ -168,7 +203,7 @@ export default function QuizResults() {
 
                   {question.type === "true-false" && (
                     <>
-                      <p><strong>Your Answer:</strong> {answer.answer || <span className="text-muted">Not Answered</span>}</p>
+                      <p className="mt-3"><strong>Your Answer:</strong> {answer.answer || <span className="text-muted">Not Answered</span>}</p>
                       {!answer.isCorrect && (
                         <p className="text-success">
                           <strong>Correct Answer:</strong> {question.correctAnswer}
@@ -179,17 +214,46 @@ export default function QuizResults() {
 
                   {question.type === "fill-in-blank" && (
                     <>
-                      <p><strong>Your Answer:</strong> {answer.answer || <span className="text-muted">Not Answered</span>}</p>
-                      {!answer.isCorrect && (
-                        <p className="text-success">
-                          <strong>Possible Correct Answers:</strong> {question.correctAnswer}
-                        </p>
+                      {question.blanks && question.blanks.length > 0 ? (
+                        // Multi-blank format
+                        <>
+                          {question.blanks.map((blank: any) => (
+                            <p key={blank.blankNumber} className="mt-3">
+                              <strong>Blank {blank.blankNumber} - Your Answer:</strong>{" "}
+                              {typeof answer.answer === 'object' && answer.answer?.[blank.blankNumber]
+                                ? answer.answer[blank.blankNumber]
+                                : <span className="text-muted">Not Answered</span>}
+                            </p>
+                          ))}
+                          {!answer.isCorrect && question.blanks.map((blank: any) => (
+                            <p key={`correct-${blank.blankNumber}`} className="text-success">
+                              <strong>Blank {blank.blankNumber} - Possible Correct Answers:</strong> {blank.correctAnswers.join(", ")}
+                            </p>
+                          ))}
+                        </>
+                      ) : (
+                        // Single blank format
+                        <>
+                          <p className="mt-3">
+                            <strong>Your Answer:</strong>{" "}
+                            {typeof answer.answer === 'string' 
+                              ? answer.answer 
+                              : <span className="text-muted">Not Answered</span>}
+                          </p>
+                          {!answer.isCorrect && (
+                            <p className="text-success">
+                              <strong>Possible Correct Answers:</strong> {question.correctAnswers?.join(", ") || question.correctAnswer}
+                            </p>
+                          )}
+                        </>
                       )}
                     </>
                   )}
 
                   <div className={`mt-2 fw-bold ${answer.isCorrect ? 'text-success' : 'text-danger'}`}>
-                    {answer.isCorrect ? `✓ Correct (${question.points}/${question.points} pts)` : `✗ Incorrect (0/${question.points} pts)`}
+                    {answer.isCorrect 
+                      ? `✓ Correct (${answer.earnedPoints || question.points}/${question.points} pts)` 
+                      : `✗ Incorrect (${answer.earnedPoints || 0}/${question.points} pts)`}
                   </div>
                 </Card.Body>
               </Card>
