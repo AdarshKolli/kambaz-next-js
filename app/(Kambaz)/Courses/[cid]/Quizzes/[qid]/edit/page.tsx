@@ -27,11 +27,14 @@ export default function QuizEditor() {
     dueDate: "",
     availableDate: "",
     untilDate: "",
+    published: false,
   });
+  const [questions, setQuestions] = useState<any[]>([]);
 
   useEffect(() => {
     if (qid !== "new") {
       fetchQuiz();
+      fetchQuestions();
     }
   }, []);
 
@@ -40,217 +43,334 @@ export default function QuizEditor() {
     setQuiz(quizData);
   };
 
+  const fetchQuestions = async () => {
+    const questionsData = await quizzesClient.findQuestionsForQuiz(qid as string);
+    setQuestions(questionsData);
+  };
+
+  const totalPoints = questions.reduce((sum, q) => sum + (q.points || 0), 0);
+
   const handleSave = async () => {
     if (qid === "new") {
       await quizzesClient.createQuizForCourse(cid as string, quiz);
     } else {
-      await quizzesClient.updateQuiz({ ...quiz, _id: qid });
+      await quizzesClient.updateQuiz(qid as string, quiz);
     }
     router.push(`/Courses/${cid}/Quizzes/${qid}`);
   };
 
   const handleSaveAndPublish = async () => {
-    const updatedQuiz = { ...quiz, published: true };
-    if (qid === "new") {
-      await quizzesClient.createQuizForCourse(cid as string, updatedQuiz);
-    } else {
-      await quizzesClient.updateQuiz({ ...updatedQuiz, _id: qid });
-    }
-    router.push(`/Courses/${cid}/Quizzes`);
-  };
+  const updatedQuiz = { ...quiz, published: true };
+  if (qid === "new") {
+    await quizzesClient.createQuizForCourse(cid as string, updatedQuiz);
+  } else {
+    await quizzesClient.updateQuiz(qid as string, updatedQuiz);
+  }
+  router.push(`/Courses/${cid}/Quizzes`);
+};
 
   const handleCancel = () => {
-    router.push(`/Courses/${cid}/Quizzes`);
+    router.push(`/Courses/${cid}/Quizzes/${qid}`);
   };
 
   useEffect(() => {
-  if (activeTab === "questions") {
-    router.push(`/Courses/${cid}/Quizzes/${qid}/questions`);
-  }
-}, [activeTab]);
+    if (activeTab === "questions") {
+      router.push(`/Courses/${cid}/Quizzes/${qid}/questions`);
+    }
+  }, [activeTab]);
 
   return (
-    <div id="wd-quiz-editor">
-      <Nav variant="tabs" className="mb-3">
+    <div id="wd-quiz-editor" className="p-4">
+      {/* Header with Points and Published Status */}
+<div className="d-flex justify-content-end align-items-center mb-3 gap-3">
+  <span><strong>Points</strong> {totalPoints}</span>
+  <span className="text-muted">⭕ {quiz.published ? "Published" : "Not Published"}</span>
+  <Button variant="link" className="text-dark p-0">⋮</Button>
+</div>
+
+      {/* Tabs */}
+      <Nav variant="tabs" className="mb-4">
         <NavItem>
-          <NavLink active={activeTab === "details"} onClick={() => setActiveTab("details")}>
+          <NavLink active={activeTab === "details"} onClick={() => setActiveTab("details")} style={{ cursor: "pointer" }}>
             Details
           </NavLink>
         </NavItem>
         <NavItem>
-          <NavLink active={activeTab === "questions"} onClick={() => setActiveTab("questions")}>
+          <NavLink active={activeTab === "questions"} onClick={() => setActiveTab("questions")} style={{ cursor: "pointer" }}>
             Questions
           </NavLink>
         </NavItem>
       </Nav>
 
       <Form>
+        {/* Title */}
         <Form.Group className="mb-3">
-          <Form.Label>Title</Form.Label>
           <Form.Control
             type="text"
             value={quiz.title}
             onChange={(e) => setQuiz({ ...quiz, title: e.target.value })}
+            placeholder="Unnamed Quiz"
+            style={{ fontSize: "1rem", fontWeight: 500 }}
           />
         </Form.Group>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Description</Form.Label>
-          <Form.Control
-            as="textarea"
-            rows={3}
-            value={quiz.description}
-            onChange={(e) => setQuiz({ ...quiz, description: e.target.value })}
-          />
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Label>Quiz Type</Form.Label>
-          <Form.Select
-            value={quiz.quizType}
-            onChange={(e) => setQuiz({ ...quiz, quizType: e.target.value })}
-          >
-            <option>Graded Quiz</option>
-            <option>Practice Quiz</option>
-            <option>Graded Survey</option>
-            <option>Ungraded Survey</option>
-          </Form.Select>
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Label>Assignment Group</Form.Label>
-          <Form.Select
-            value={quiz.assignmentGroup}
-            onChange={(e) => setQuiz({ ...quiz, assignmentGroup: e.target.value })}
-          >
-            <option>Quizzes</option>
-            <option>Exams</option>
-            <option>Assignments</option>
-            <option>Project</option>
-          </Form.Select>
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Check
-            type="checkbox"
-            label="Shuffle Answers"
-            checked={quiz.shuffleAnswers}
-            onChange={(e) => setQuiz({ ...quiz, shuffleAnswers: e.target.checked })}
-          />
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Label>Time Limit (Minutes)</Form.Label>
-          <Form.Control
-            type="number"
-            value={quiz.timeLimit}
-            onChange={(e) => setQuiz({ ...quiz, timeLimit: parseInt(e.target.value) })}
-          />
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Check
-            type="checkbox"
-            label="Allow Multiple Attempts"
-            checked={quiz.multipleAttempts}
-            onChange={(e) => setQuiz({ ...quiz, multipleAttempts: e.target.checked })}
-          />
-        </Form.Group>
-
-        {quiz.multipleAttempts && (
-          <Form.Group className="mb-3">
-            <Form.Label>How Many Attempts</Form.Label>
+        {/* Quiz Instructions */}
+        <Form.Group className="mb-4">
+          <Form.Label>Quiz Instructions:</Form.Label>
+          <div className="border rounded p-2" style={{ minHeight: "100px", backgroundColor: "#fff" }}>
             <Form.Control
-              type="number"
-              value={quiz.howManyAttempts}
-              onChange={(e) => setQuiz({ ...quiz, howManyAttempts: parseInt(e.target.value) })}
+              as="textarea"
+              rows={4}
+              value={quiz.description}
+              onChange={(e) => setQuiz({ ...quiz, description: e.target.value })}
+              placeholder="Enter quiz instructions here..."
+              style={{ border: "none", resize: "none" }}
             />
+          </div>
+        </Form.Group>
+
+        <Form.Group className="row mb-3">
+  <Form.Label className="col-sm-3 col-form-label text-end">Points</Form.Label>
+  <div className="col-sm-9">
+    <Form.Control
+      type="input number"
+      value={quiz.points || 0}
+      onChange={(e) => setQuiz({ ...quiz, points: parseInt(e.target.value) || 0 })}
+    />
+  </div>
+</Form.Group>
+
+        {/* Quiz Type */}
+        <Form.Group className="row mb-3">
+          <Form.Label className="col-sm-3 col-form-label text-end">Quiz Type</Form.Label>
+          <div className="col-sm-9">
+            <Form.Select
+              value={quiz.quizType}
+              onChange={(e) => setQuiz({ ...quiz, quizType: e.target.value })}
+            >
+              <option>Graded Quiz</option>
+              <option>Practice Quiz</option>
+              <option>Graded Survey</option>
+              <option>Ungraded Survey</option>
+            </Form.Select>
+          </div>
+        </Form.Group>
+
+        {/* Assignment Group */}
+        <Form.Group className="row mb-3">
+          <Form.Label className="col-sm-3 col-form-label text-end">Assignment Group</Form.Label>
+          <div className="col-sm-9">
+            <Form.Select
+              value={quiz.assignmentGroup}
+              onChange={(e) => setQuiz({ ...quiz, assignmentGroup: e.target.value })}
+            >
+              <option>Quizzes</option>
+              <option>Exams</option>
+              <option>Assignments</option>
+              <option>Project</option>
+            </Form.Select>
+          </div>
+        </Form.Group>
+
+        {/* Options Section */}
+        <div className="row mb-4">
+          <div className="col-sm-3"></div>
+          <div className="col-sm-9">
+            <h6 className="mb-3">Options</h6>
+
+            {/* Shuffle Answers */}
+            <Form.Group className="mb-3">
+              <Form.Check
+                type="checkbox"
+                label="Shuffle Answers"
+                checked={quiz.shuffleAnswers}
+                onChange={(e) => setQuiz({ ...quiz, shuffleAnswers: e.target.checked })}
+              />
+            </Form.Group>
+
+            {/* Time Limit */}
+            <Form.Group className="row mb-3 align-items-center">
+              <div className="col-auto">
+                <Form.Check
+                  type="checkbox"
+                  label="Time Limit"
+                  checked={quiz.timeLimit > 0}
+                  onChange={(e) => setQuiz({ ...quiz, timeLimit: e.target.checked ? 20 : 0 })}
+                />
+              </div>
+              <div className="col-auto">
+                <Form.Control
+                  type="input number"
+                  value={quiz.timeLimit}
+                  onChange={(e) => setQuiz({ ...quiz, timeLimit: parseInt(e.target.value) || 0 })}
+                  style={{ width: "80px" }}
+                  disabled={quiz.timeLimit === 0}
+                />
+              </div>
+              <div className="col-auto">
+                <span>Minutes</span>
+              </div>
+            </Form.Group>
+
+            {/* Multiple Attempts */}
+            <Form.Group className="mb-3">
+              <Form.Check
+                type="checkbox"
+                label="Allow Multiple Attempts"
+                checked={quiz.multipleAttempts}
+                onChange={(e) => setQuiz({ ...quiz, multipleAttempts: e.target.checked })}
+              />
+            </Form.Group>
+
+            {quiz.multipleAttempts && (
+              <Form.Group className="row mb-3 ms-4">
+                <Form.Label className="col-sm-4 col-form-label">How Many Attempts</Form.Label>
+                <div className="col-sm-8">
+                  <Form.Control
+                    type="number"
+                    value={quiz.howManyAttempts}
+                    onChange={(e) => setQuiz({ ...quiz, howManyAttempts: parseInt(e.target.value) || 1 })}
+                    style={{ width: "100px" }}
+                  />
+                </div>
+              </Form.Group>
+            )}
+          </div>
+        </div>
+
+        {/* Show Correct Answers */}
+        <Form.Group className="row mb-3">
+          <Form.Label className="col-sm-3 col-form-label text-end">Show Correct Answers</Form.Label>
+          <div className="col-sm-9">
+            <Form.Select
+              value={quiz.showCorrectAnswers}
+              onChange={(e) => setQuiz({ ...quiz, showCorrectAnswers: e.target.value })}
+            >
+              <option>Immediately</option>
+              <option>After Due Date</option>
+              <option>Never</option>
+            </Form.Select>
+          </div>
+        </Form.Group>
+
+        {/* Access Code */}
+        <Form.Group className="row mb-3">
+          <Form.Label className="col-sm-3 col-form-label text-end">Access Code</Form.Label>
+          <div className="col-sm-9">
+            <Form.Control
+              type="text"
+              value={quiz.accessCode}
+              onChange={(e) => setQuiz({ ...quiz, accessCode: e.target.value })}
+              placeholder="Optional access code"
+            />
+          </div>
+        </Form.Group>
+
+        {/* One Question at a Time */}
+        <Form.Group className="row mb-3">
+          <div className="col-sm-3"></div>
+          <div className="col-sm-9">
+            <Form.Check
+              type="checkbox"
+              label="One Question at a Time"
+              checked={quiz.oneQuestionAtTime}
+              onChange={(e) => setQuiz({ ...quiz, oneQuestionAtTime: e.target.checked })}
+            />
+          </div>
+        </Form.Group>
+
+        {/* Webcam Required */}
+        <Form.Group className="row mb-3">
+          <div className="col-sm-3"></div>
+          <div className="col-sm-9">
+            <Form.Check
+              type="checkbox"
+              label="Webcam Required"
+              checked={quiz.webcamRequired}
+              onChange={(e) => setQuiz({ ...quiz, webcamRequired: e.target.checked })}
+            />
+          </div>
+        </Form.Group>
+
+        {/* Lock Questions After Answering */}
+        <Form.Group className="row mb-3">
+          <div className="col-sm-3"></div>
+          <div className="col-sm-9">
+            <Form.Check
+              type="checkbox"
+              label="Lock Questions After Answering"
+              checked={quiz.lockQuestionsAfterAnswering}
+              onChange={(e) => setQuiz({ ...quiz, lockQuestionsAfterAnswering: e.target.checked })}
+            />
+          </div>
+        </Form.Group>
+
+        {/* Assign Section */}
+        <div className="border rounded p-3 mb-4" style={{ backgroundColor: "#f8f9fa" }}>
+          <h6 className="mb-3">Assign</h6>
+
+          {/* Assign to */}
+          <Form.Group className="row mb-3">
+            <Form.Label className="col-sm-3 col-form-label text-end">Assign to</Form.Label>
+            <div className="col-sm-9">
+              <div className="border rounded p-2" style={{ backgroundColor: "#fff" }}>
+                <span className="badge bg-secondary">Everyone ✕</span>
+              </div>
+            </div>
           </Form.Group>
-        )}
 
-        <Form.Group className="mb-3">
-          <Form.Label>Show Correct Answers</Form.Label>
-          <Form.Select
-            value={quiz.showCorrectAnswers}
-            onChange={(e) => setQuiz({ ...quiz, showCorrectAnswers: e.target.value })}
-          >
-            <option>Immediately</option>
-            <option>After Due Date</option>
-            <option>Never</option>
-          </Form.Select>
-        </Form.Group>
+          {/* Due Date */}
+          <Form.Group className="row mb-3">
+            <Form.Label className="col-sm-3 col-form-label text-end">Due</Form.Label>
+            <div className="col-sm-9">
+              <Form.Control
+                type="input date"
+                value={quiz.dueDate}
+                onChange={(e) => setQuiz({ ...quiz, dueDate: e.target.value })}
+              />
+            </div>
+          </Form.Group>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Access Code</Form.Label>
-          <Form.Control
-            type="text"
-            value={quiz.accessCode}
-            onChange={(e) => setQuiz({ ...quiz, accessCode: e.target.value })}
-          />
-        </Form.Group>
+          {/* Available From and Until */}
+          <Form.Group className="row mb-3">
+            <Form.Label className="col-sm-3 col-form-label text-end">Available from</Form.Label>
+            <div className="col-sm-4">
+              <Form.Control
+                type="input date"
+                value={quiz.availableDate}
+                onChange={(e) => setQuiz({ ...quiz, availableDate: e.target.value })}
+              />
+            </div>
+            <Form.Label className="col-sm-1 col-form-label text-end">Until</Form.Label>
+            <div className="col-sm-4">
+              <Form.Control
+                type="input date"
+                value={quiz.untilDate}
+                onChange={(e) => setQuiz({ ...quiz, untilDate: e.target.value })}
+              />
+            </div>
+          </Form.Group>
 
-        <Form.Group className="mb-3">
-          <Form.Check
-            type="checkbox"
-            label="One Question at a Time"
-            checked={quiz.oneQuestionAtTime}
-            onChange={(e) => setQuiz({ ...quiz, oneQuestionAtTime: e.target.checked })}
-          />
-        </Form.Group>
+          {/* Add Button */}
+          <div className="row">
+            <div className="col-sm-3"></div>
+            <div className="col-sm-9">
+              <Button variant="link" className="text-decoration-none p-0">
+                + Add
+              </Button>
+            </div>
+          </div>
+        </div>
 
-        <Form.Group className="mb-3">
-          <Form.Check
-            type="checkbox"
-            label="Webcam Required"
-            checked={quiz.webcamRequired}
-            onChange={(e) => setQuiz({ ...quiz, webcamRequired: e.target.checked })}
-          />
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Check
-            type="checkbox"
-            label="Lock Questions After Answering"
-            checked={quiz.lockQuestionsAfterAnswering}
-            onChange={(e) => setQuiz({ ...quiz, lockQuestionsAfterAnswering: e.target.checked })}
-          />
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Label>Due Date</Form.Label>
-          <Form.Control
-            type="date"
-            value={quiz.dueDate}
-            onChange={(e) => setQuiz({ ...quiz, dueDate: e.target.value })}
-          />
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Label>Available From</Form.Label>
-          <Form.Control
-            type="date"
-            value={quiz.availableDate}
-            onChange={(e) => setQuiz({ ...quiz, availableDate: e.target.value })}
-          />
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Label>Until</Form.Label>
-          <Form.Control
-            type="date"
-            value={quiz.untilDate}
-            onChange={(e) => setQuiz({ ...quiz, untilDate: e.target.value })}
-          />
-        </Form.Group>
-
-        <div className="d-flex gap-2">
-          <Button variant="secondary" onClick={handleCancel}>
+        {/* Action Buttons */}
+        <div className="d-flex justify-content-end gap-2 border-top pt-3">
+          <Button variant="outline-secondary" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={handleSave}>
+          <Button variant="danger" onClick={handleSave}>
             Save
           </Button>
-          <Button variant="success" onClick={handleSaveAndPublish}>
+          <Button variant="danger" onClick={handleSaveAndPublish}>
             Save & Publish
           </Button>
         </div>

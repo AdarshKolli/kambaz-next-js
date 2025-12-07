@@ -18,40 +18,115 @@ export default function TakeQuiz() {
   const [questions, setQuestions] = useState<any[]>([]);
   const [answers, setAnswers] = useState<any>({});
   const [attempts, setAttempts] = useState<any[]>([]);
-  const [canTakeQuiz, setCanTakeQuiz] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchQuizData();
-    fetchAttempts();
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    await fetchQuizData();
+    await fetchAttempts();
+    setLoading(false);
+  };
 
   const fetchQuizData = async () => {
     const quizData = await quizzesClient.findQuizById(qid as string);
     const questionsData = await quizzesClient.findQuestionsForQuiz(qid as string);
     setQuiz(quizData);
     setQuestions(quizData.shuffleAnswers ? shuffleArray(questionsData) : questionsData);
+    return quizData;
   };
 
-const fetchAttempts = async () => {
-  try {
-    const attemptsData = await quizzesClient.findAttemptsForQuiz(qid as string);
-    setAttempts(attemptsData);
-  } catch (error) {
-    // No attempts yet
-  }
-};
+  const fetchAttempts = async () => {
+    try {
+      const attemptsData = await quizzesClient.findAttemptsForQuiz(qid as string);
+      setAttempts(attemptsData);
+      
+      const quizData = quiz || await quizzesClient.findQuizById(qid as string);
+      
+      // Check if past due date (start of next day)
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      const dueDate = new Date(quizData.dueDate);
+      dueDate.setHours(0, 0, 0, 0);
+      dueDate.setDate(dueDate.getDate() + 1); // Closes at start of next day
+      
+      if (now >= dueDate && attemptsData.length === 0) {
+        // Past due date with no attempts - auto submit with score 0
+        const zeroAttempt = {
+          attempt: 1,
+          score: 0,
+          answers: [],
+          submittedAt: new Date().toISOString(),
+        };
+        await quizzesClient.submitQuizAttempt(qid as string, zeroAttempt);
+        router.push(`/Courses/${cid}/Quizzes/${qid}/results`);
+        return;
+      } else if (now >= dueDate && attemptsData.length > 0) {
+        // Past due date with attempts - redirect to results
+        router.push(`/Courses/${cid}/Quizzes/${qid}/results`);
+        return;
+      }
+      
+      // Check if student has exhausted attempts
+      if (!quizData.multipleAttempts && attemptsData.length >= 1) {
+        router.push(`/Courses/${cid}/Quizzes/${qid}/results`);
+        return;
+      } else if (quizData.multipleAttempts && attemptsData.length >= quizData.howManyAttempts) {
+        router.push(`/Courses/${cid}/Quizzes/${qid}/results`);
+        return;
+      }
+    } catch (error) {
+      // No attempts yet - check due date
+      const quizData = quiz || await quizzesClient.findQuizById(qid as string);
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      const dueDate = new Date(quizData.dueDate);
+      dueDate.setHours(0, 0, 0, 0);
+      dueDate.setDate(dueDate.getDate() + 1); // Closes at start of next day
+      
+      if (now >= dueDate) {
+        // Past due date with no attempts - auto submit with score 0
+        const zeroAttempt = {
+          attempt: 1,
+          score: 0,
+          answers: [],
+          submittedAt: new Date().toISOString(),
+        };
+        await quizzesClient.submitQuizAttempt(qid as string, zeroAttempt);
+        router.push(`/Courses/${cid}/Quizzes/${qid}/results`);
+      }
+    }
+  };
 
   const shuffleArray = (array: any[]) => {
     return [...array].sort(() => Math.random() - 0.5);
   };
 
-  const handleAnswerChange = (questionId: string, answer: any) => {
-    setAnswers({ ...answers, [questionId]: answer });
+  const handleAnswerChange = (questionId: string, answer: string) => {
+    setAnswers((prev: any) => ({
+      ...prev,
+      [questionId]: answer
+    }));
   };
 
   const handleSubmit = async () => {
     if (!currentUser) {
       alert("Please sign in to submit quiz");
+      return;
+    }
+
+    // Check due date before submitting (start of next day)
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const dueDate = new Date(quiz.dueDate);
+    dueDate.setHours(0, 0, 0, 0);
+    dueDate.setDate(dueDate.getDate() + 1); // Closes at start of next day
+    
+    if (now >= dueDate) {
+      alert("This quiz is past the due date and can no longer be submitted.");
+      router.push(`/Courses/${cid}/Quizzes`);
       return;
     }
 
@@ -66,9 +141,21 @@ const fetchAttempts = async () => {
       } else if (question.type === "true-false") {
         isCorrect = userAnswer === question.correctAnswer;
       } else if (question.type === "fill-in-blank") {
-        const correctAnswers = question.correctAnswer.split(",").map((a: string) => a.trim().toLowerCase());
-        isCorrect = correctAnswers.includes(userAnswer?.toLowerCase());
-      }
+  const correctAnswers = question.correctAnswers || 
+    (question.correctAnswer ? question.correctAnswer.split(",").map((a: string) => a.trim()) : []);
+  
+  const isCaseSensitive = question.caseSensitive || false;
+  
+  if (isCaseSensitive) {
+    isCorrect = correctAnswers.includes(userAnswer);
+  } else {
+    isCorrect = correctAnswers.some((ans: string) => 
+      ans.toLowerCase() === userAnswer?.toLowerCase()
+    );
+  }
+  
+  earnedPoints = isCorrect ? question.points : 0;
+}
 
       if (isCorrect) {
         calculatedScore += question.points;
@@ -85,29 +172,17 @@ const fetchAttempts = async () => {
       attempt: attempts.length + 1,
       score: calculatedScore,
       answers: answersArray,
+      submittedAt: new Date().toISOString(),
     };
 
     await quizzesClient.submitQuizAttempt(qid as string, attempt);
     router.push(`/Courses/${cid}/Quizzes/${qid}/results`);
   };
 
-  if (!quiz) return <div>Loading...</div>;
-
-  if (!canTakeQuiz) {
-    return (
-      <div>
-        <Alert variant="warning">
-          You have exhausted all attempts for this quiz.
-        </Alert>
-        <Button onClick={() => router.push(`/Courses/${cid}/Quizzes/${qid}`)}>
-          Back to Quiz Details
-        </Button>
-      </div>
-    );
-  }
+  if (loading || !quiz) return <div>Loading...</div>;
 
   return (
-    <div id="wd-take-quiz">
+    <div id="wd-take-quiz" className="p-3">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h2>{quiz.title}</h2>
         <div>
@@ -134,37 +209,42 @@ const fetchAttempts = async () => {
             {question.type === "multiple-choice" && (
               <Form>
                 {question.choices.map((choice: any, idx: number) => (
-                  <Form.Check
-                    key={idx}
-                    type="radio"
-                    label={choice.text}
-                    name={`question-${question._id}`}
-                    value={choice.text}
-                    checked={answers[question._id] === choice.text}
-                    onChange={(e) => handleAnswerChange(question._id, e.target.value)}
-                  />
+                  <div key={`${question._id}-${idx}`} className="mb-2">
+                    <Form.Check
+                      type="radio"
+                      id={`q-${question._id}-c-${idx}`}
+                      label={choice.text}
+                      name={`question-${question._id}`}
+                      checked={answers[question._id] === choice.text}
+                      onChange={() => handleAnswerChange(question._id, choice.text)}
+                    />
+                  </div>
                 ))}
               </Form>
             )}
 
             {question.type === "true-false" && (
               <Form>
-                <Form.Check
-                  type="radio"
-                  label="True"
-                  name={`question-${question._id}`}
-                  value="true"
-                  checked={answers[question._id] === "true"}
-                  onChange={(e) => handleAnswerChange(question._id, e.target.value)}
-                />
-                <Form.Check
-                  type="radio"
-                  label="False"
-                  name={`question-${question._id}`}
-                  value="false"
-                  checked={answers[question._id] === "false"}
-                  onChange={(e) => handleAnswerChange(question._id, e.target.value)}
-                />
+                <div className="mb-2">
+                  <Form.Check
+                    type="radio"
+                    id={`q-${question._id}-true`}
+                    label="True"
+                    name={`question-${question._id}`}
+                    checked={answers[question._id] === "True"}
+                    onChange={() => handleAnswerChange(question._id, "True")}
+                  />
+                </div>
+                <div className="mb-2">
+                  <Form.Check
+                    type="radio"
+                    id={`q-${question._id}-false`}
+                    label="False"
+                    name={`question-${question._id}`}
+                    checked={answers[question._id] === "False"}
+                    onChange={() => handleAnswerChange(question._id, "False")}
+                  />
+                </div>
               </Form>
             )}
 
