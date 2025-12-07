@@ -58,6 +58,11 @@ export default function Signin() {
       <Link href="/Account/Signup" id="wd-signup-link">
         Sign up
       </Link>
+      <div className="text-center mt-5 pt-5 border-top">
+        <Link href="/Team" className="text-muted">
+          Team Details & Repository Links
+        </Link>
+      </div>
     </div>
   );
 }
