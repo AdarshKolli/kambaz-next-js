@@ -50,16 +50,43 @@ export default function QuizEditor() {
 
   const totalPoints = questions.reduce((sum, q) => sum + (q.points || 0), 0);
 
-  const handleSave = async () => {
-    if (qid === "new") {
-      await quizzesClient.createQuizForCourse(cid as string, quiz);
-    } else {
-      await quizzesClient.updateQuiz(qid as string, quiz);
-    }
-    router.push(`/Courses/${cid}/Quizzes/${qid}`);
-  };
+  const validateDates = () => {
+  const availableDate = new Date(quiz.availableDate);
+  const dueDate = new Date(quiz.dueDate);
+  const untilDate = new Date(quiz.untilDate);
 
-  const handleSaveAndPublish = async () => {
+  if (dueDate < availableDate) {
+    alert("Due date cannot be before the Available date");
+    return false;
+  }
+
+  if (untilDate < availableDate) {
+    alert("Until date cannot be before the Available date");
+    return false;
+  }
+
+  if (untilDate < dueDate) {
+    alert("Until date should be on or after the Due date");
+    return false;
+  }
+
+  return true;
+};
+
+  const handleSave = async () => {
+  if (!validateDates()) return; // Add this line
+  
+  if (qid === "new") {
+    await quizzesClient.createQuizForCourse(cid as string, quiz);
+  } else {
+    await quizzesClient.updateQuiz(qid as string, quiz);
+  }
+  router.push(`/Courses/${cid}/Quizzes/${qid}`);
+};
+
+const handleSaveAndPublish = async () => {
+  if (!validateDates()) return; // Add this line
+  
   const updatedQuiz = { ...quiz, published: true };
   if (qid === "new") {
     await quizzesClient.createQuizForCourse(cid as string, updatedQuiz);
